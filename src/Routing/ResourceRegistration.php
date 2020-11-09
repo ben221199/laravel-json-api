@@ -40,7 +40,7 @@ final class ResourceRegistration implements Arrayable
     /**
      * @var string
      */
-    private $resourceType;
+    private $uri;
 
     /**
      * @var array
@@ -68,13 +68,13 @@ final class ResourceRegistration implements Arrayable
      * ResourceRegistration constructor.
      *
      * @param Registrar $router
-     * @param string $resourceType
+     * @param string $uri
      * @param array $options
      */
-    public function __construct(Registrar $router, string $resourceType, array $options = [])
+    public function __construct(Registrar $router, string $uri, array $options = [])
     {
         $this->router = $router;
-        $this->resourceType = $resourceType;
+        $this->uri = $uri;
         $this->registered = false;
 
         $this->options = collect($options)
@@ -173,6 +173,17 @@ final class ResourceRegistration implements Arrayable
         return $this;
     }
 
+	/**
+	 * @param string $resourceType
+	 * @return $this
+	 */
+	public function resourceType(string $resourceType): self
+	{
+		$this->options['resource_type'] = $resourceType;
+
+		return $this;
+	}
+
     /**
      * @return $this
      */
@@ -230,7 +241,7 @@ final class ResourceRegistration implements Arrayable
     {
         $this->registered = true;
 
-        $group = new ResourceRegistrar($this->router, $this->resourceType, $this->toArray(), $this->routes);
+        $group = new ResourceRegistrar($this->router, $this->uri, $this->toArray(), $this->routes);
         $group->register($this->router);
     }
 
@@ -249,11 +260,13 @@ final class ResourceRegistration implements Arrayable
      */
     private function guessController(): string
     {
+    	$type = $this->options['resource_type'] ?? $this->uri;
+
         if (!$fn = $this->options['controller_resolver'] ?? null) {
-            return Str::classify($this->resourceType) . 'Controller';
+            return Str::classify($type) . 'Controller';
         }
 
-        $controller = $fn($this->resourceType);
+        $controller = $fn($type);
 
         if (!is_string($controller) || empty($controller)) {
             throw new RuntimeException('Expecting controller name callback to return a non-empty string.');
