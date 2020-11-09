@@ -98,15 +98,15 @@ class RouteRegistrar
     /**
      * Register routes for the supplied resource type
      *
-     * @param string $resourceType
+     * @param string $uri
      * @param array $options
      * @return ResourceRegistration
      */
-    public function resource(string $resourceType, array $options = []): ResourceRegistration
+    public function resource(string $uri, array $options = []): ResourceRegistration
     {
         return new ResourceRegistration(
             $this->router,
-            $resourceType,
+			$uri,
             array_merge($this->options, $options)
         );
     }
