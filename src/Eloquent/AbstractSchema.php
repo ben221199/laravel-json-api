@@ -33,19 +33,28 @@ abstract class AbstractSchema extends SchemaProvider
 
 	public function __construct(SchemaFactoryInterface $factory)
 	{
-		if ($this->selfSubUrl === null) {
-			$this->selfSubUrl = '/' . $this->getUri();
-		}
+		$this->resolveSubUrl();
 		parent::__construct($factory);
 	}
 
-	public function getUri()
+	public function resolveSubUrl()
 	{
+		//Check for custom route
 		$route = Route::getCurrentRoute();
-		if ($route === null) {
-			return $this->getResourceType();
+		if ($route !== null) {
+			$uri = $route->parameter(ResourceRegistrar::PARAM_RESOURCE_URI);
+			if($uri !== null) {
+				$this->selfSubUrl =  (substr($uri, 0) === '/') ? $uri : '/' . $uri;
+				return;
+			}
 		}
-		return $route->parameter(ResourceRegistrar::PARAM_RESOURCE_URI,$this->getResourceType());
+		//Check for $selfSubUrl
+		if($this->selfSubUrl !== null){
+			$this->selfSubUrl = $this->getSelfSubUrl();
+			return;
+		}
+		//Fallback on resource type
+		$this->selfSubUrl = '/' . $this->getResourceType();
 	}
 
 }
